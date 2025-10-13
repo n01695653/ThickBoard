@@ -1,0 +1,59 @@
+ Project Overview:
+A RESTful API for managing notes with full CRUD operations, built with Express.js and MongoDB.
+
+Architecture:
+Backend: Express.js
+Database: MongoDB with Mongoose
+Pattern: MVC architecture
+
+
+Project Strcuture:
+backend/
+├── src/
+│   ├── config/db.js
+│   ├── controllers/notesControllers.js
+│   ├── models/Note.js
+│   ├── routes/notesRoutes.js
+│   └── server.js
+├── data/
+│   └── notes.json          
+├── .env
+└── package.json
+
+
+ Features
+ CRUD Operations - Create, read, update, delete notes
+ RESTful Routes - Clean API endpoints
+ Error Handling - Proper status codes and messages
+ Middleware - JSON parsing, logging, 404 handler
+ MongoDB Integration - Persistent data storage
+
+API Endpoints
+Method	Endpoint	    Description      	Status
+GET	    /api/notes	    Get all notes     	200
+GET	    /api/notes/:id	Get single note 	200/404
+POST	/api/notes	    Create new note	    201
+PUT  	/api/notes/:id	Update note	        200/404
+DELETE	/api/notes/:id	Delete note	        200/404
+
+Environment setup:
+MONGO_URI=your_mongodb_connection_string
+PORT=5001
+
+Server Start:
+npm run dev
+
+Testing
+Get - http://localhost:5001/api/notes = get all the notes 
+Get - http://localhost:5001/api/notes/id  = get note by id 
+Post- http://localhost:5001/api/notes   =  create the notes 
+Put - http://localhost:5001/api/notes/id = update the note 
+Delete - http://localhost:5001/api/notes/id - delete the note 
+
+Phase 2 Compliance
+Full CRUD operations implemented
+Modular route structure
+Proper HTTP status code
+Error handling middlewae
+MongoDB data persistence
+Request/response logging

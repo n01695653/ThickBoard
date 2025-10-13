@@ -1,0 +1,42 @@
+[
+  {
+    "title": "Meeting Notes",
+    "content": "Discuss project requirements with team tomorrow at 10 AM"
+  },
+  {
+    "title": "Shopping List", 
+    "content": "Milk, Eggs, Bread, Fruits, Vegetables"
+  },
+  {
+    "title": "Study Plan",
+    "content": "Complete Phase 2 project by October 11th"
+  },
+  {
+    "title": "Ideas",
+    "content": "Work on new feature ideas for the application"
+  },
+  {
+    "title": "Reminders",
+    "content": "Call John about the meeting, Pay electricity bill"
+  },
+  {
+    "title": "Project Tasks",
+    "content": "Fix login issue, Update documentation, Test API endpoints"
+  },
+  {
+    "title": "Learning Goals",
+    "content": "Learn Express.js middleware, Practice MongoDB queries"
+  },
+  {
+    "title": "Weekend Plans",
+    "content": "Grocery shopping, Clean house, Watch movie"
+  },
+  {
+    "title": "Workout Routine",
+    "content": "Morning jog, Pushups, Squats, Plank exercise"
+  },
+  {
+    "title": "Book Recommendations",
+    "content": "Atomic Habits, Deep Work, Clean Code, JavaScript Patterns"
+  }
+]
