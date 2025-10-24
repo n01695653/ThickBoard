@@ -2,13 +2,72 @@ import Note from "../models/Note.js";
 
 export  async function getAllNotes(req,res) {
     try {
-        const notes = await Note.find().sort({createdAt:-1})//show newest one note 
-        res.status(200).json(notes)
+        // ====================
+        // 1. GET QUERY PARAMETERS
+        // ====================
+        const page = parseInt(req.query.page) || 1;      // Page number (default: 1)
+        const limit = parseInt(req.query.limit) || 6;   // Notes per page (default: 10)
+        const search = req.query.search || '';           // Search keyword
+        const sortBy = req.query.sortBy || 'createdAt';  // Sort field
+        const order = req.query.order || 'desc';         // Sort order
+
+        // 2. CALCULATE PAGINATION
+        const skip = (page - 1) * limit; // Skip previous pages
+
+        // ====================
+        // 3. BUILD SEARCH FILTER
+        // ====================
+        let filter = {};
+        if (search) {
+            filter = {
+                $or: [
+                    { title: { $regex: search, $options: 'i' } },     // Search in title (case insensitive)
+                    { content: { $regex: search, $options: 'i' } }    // Search in content (case insensitive)
+                ]
+            };
+        }
+
+        // 4. BUILD SORT OBJECT
+        const sortOptions = {};
+        if (sortBy === 'title') {
+            sortOptions.title = order === 'asc' ? 1 : -1;
+        } else if (sortBy === 'createdAt') {
+            sortOptions.createdAt = order === 'asc' ? 1 : -1;
+        } else {
+            sortOptions.createdAt = -1; // Default sort: newest first
+        }
+
+        // 5. EXECUTE QUERY
+        const notes = await Note.find(filter)
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(limit);
+
+        // 6. GET TOTAL COUNT FOR PAGINATION INFO
+        const totalNotes = await Note.countDocuments(filter);
+        const totalPages = Math.ceil(totalNotes / limit);
+
+        
+        res.status(200).json({
+            
+            pagination: {
+                currentPage: page,
+                totalPages: totalPages,
+                totalNotes: totalNotes,
+                notesPerPage: limit
+            },
+            search: search,
+            sortBy: sortBy,
+            order: order,
+            notes: notes,
+        });
+
     } catch (error) {
-        console.error("Error in getAllNotes Controller", error)
-        res.status(500).json({message:"Internal Several Error"})
+        console.error("Error in getAllNotes Controller", error);
+        res.status(500).json({ message: "Internal Server Error" });
     }
 }
+
 export async function getNoteByID(req,res){
     try {
         const note = await Note.findById(req.params.id)
