@@ -1,0 +1,91 @@
+Notes Management System - Full Stack Application
+Project Overview:
+A full-stack notes management application with React frontend and Express.js + MongoDB backend.
+
+Student ID: N01695653
+Name: Maksudhsuen Arifhusen Malek
+
+Architecture
+Frontend: React.js with Tailwind CSS & DaisyUI
+Backend: Express.js with MongoDB Atlas
+Database: MongoDB with Mongoose ODM
+Pattern: MVC architecture
+
+ Project Structure:
+notes-app/
+├── backend/                 # Express.js + MongoDB API
+│   ├── src/
+│   │   ├── config/db.js
+│   │   ├── controllers/notesControllers.js
+│   │   ├── models/Note.js
+│   │   ├── routes/notesRoutes.js
+│   │   └── server.js
+│   ├── data/notes.json
+│   ├── .env
+│   └── package.json
+├── frontend/                # React.js Frontend with Tailwind CSS
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   │   ├── CreatePage.jsx
+│   │   │   ├── HomePage.jsx
+│   │   │   └── NoteDetailPage.jsx
+│   │   ├── App.jsx
+│   │   ├── index.css
+│   │   └── main.jsx
+│   ├── .gitignore
+│   ├── eslint.config.js
+│   ├── index.html
+│   └── package.json
+└── README.md
+
+Features Implemented
+
+Backend Features (Phase 2 & 3)
+ CRUD Operations - Create, read, update, delete notes
+
+ RESTful Routes - Clean API endpoints
+
+Error Handling - Proper status codes and messages
+
+ Middleware - JSON parsing, logging, 404 handler
+
+MongoDB Integration - Persistent data storage
+
+Pagination - 6 notes per page default
+
+Sorting - By title or creation date
+
+Search - Full-text search in title and content
+
+
+Frontend Features (Phase 4) React.js with modern JSX components
+ Tailwind CSS for responsive styling
+ DaisyUI for beautiful UI components and themes
+ Multi-page Application with React Router
+ HomePage - Dashboard displaying all notes
+CreatePage - Form for creating new notes
+API Integration with backend using Axios/Fetch
+
+
+API Endpoints
+Method	Endpoint	    Description	                                  Status
+GET 	/api/notes	     Get all notes with pagination/sorting/search	200
+GET	    /api/notes/:id	 Get single note by ID	                       200/404
+POST	/api/notes	    Create new note	                                201
+PUT    	/api/notes/:id	Update existing note	                       200/404
+DELETE	/api/notes/:id	Delete note	                                   200/404
+
+
+Frontend Setup:
+bash
+cd frontend
+npm install
+
+# Start frontend development server
+npm run dev
+
+ Application URLs
+Backend API: http://localhost:5001
+Frontend App: http://localhost:3000 (or specified by Vite)
