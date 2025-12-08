@@ -14,9 +14,7 @@ export  async function getAllNotes(req,res) {
         // 2. CALCULATE PAGINATION
         const skip = (page - 1) * limit; // Skip previous pages
 
-        // ====================
-        // 3. BUILD SEARCH FILTER
-        // ====================
+        
         let filter = {};
         if (search) {
             filter = {
@@ -108,14 +106,27 @@ export async function updateNotes(req,res){
         res.status(500).json({message:"Internal Several Error"})
      }
 }
-export async function deleteNotes(req,res){
+export async function deleteNotes(req, res) {
     try {
-        const deletedNote = await Note.findByIdAndDelete(req.params.id)
-        if(!deletedNote) // if the user enter invalid  id  then it return status 404 that menas not found 
-             return res.status(404).json({message:"Note Not Found"})
-        res.status(200).json("Note Deleted Successfully")
+        const deletedNote = await Note.findByIdAndDelete(req.params.id);
+        
+        if (!deletedNote) {
+            return res.status(404).json({ 
+                success: false,
+                message: "Note Not Found" 
+            });
+        }
+        
+        res.status(200).json({
+            success: true,
+            message: "Note deleted successfully"
+        });
+        
     } catch (error) {
-        console.error("Error in deleteNotes Controller", error)
-        res.status(500).json({message:"Internal Several Error"})
+        console.error("Error in deleteNotes Controller", error);
+        res.status(500).json({ 
+            success: false,
+            message: "Internal Server Error" 
+        });
     }
 }

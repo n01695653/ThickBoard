@@ -7,11 +7,9 @@ import {
   Calendar, 
   User, 
   Clock, 
-  Shield, 
-  Eye,
+  Shield,
   Save,
-  X,
-  CheckCircle
+  X
 } from 'lucide-react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
@@ -182,7 +180,7 @@ export const NoteDetailPage = () => {
       <div className="min-h-screen bg-gradient-to-b from-base-200 to-base-300 flex items-center justify-center">
         <div className="text-center max-w-md">
           <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-base-200 flex items-center justify-center">
-            <Eye className="w-12 h-12 text-base-content/50" />
+            <Shield className="w-12 h-12 text-base-content/50" />
           </div>
           <h3 className="text-xl font-semibold text-white mb-2">Note Not Found</h3>
           <p className="text-base-content/70 mb-6">The note you're looking for doesn't exist or you don't have permission to view it.</p>
@@ -207,9 +205,9 @@ export const NoteDetailPage = () => {
                   <User className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Viewing as: {user.email}</p>
+                  <p className="text-sm font-medium">{user.email}</p>
                   <p className="text-xs text-base-content/60">
-                    {user.role === 'admin' ? 'Administrator permissions' : 'Read-only access'}
+                    {user.role === 'admin' ? 'Administrator' : 'User'}
                   </p>
                 </div>
               </div>
@@ -217,7 +215,7 @@ export const NoteDetailPage = () => {
                 {user.role === 'admin' ? (
                   <>
                     <Shield className="w-3 h-3 mr-1" />
-                    Administrator
+                    Admin
                   </>
                 ) : 'User'}
               </div>
@@ -374,19 +372,6 @@ export const NoteDetailPage = () => {
                       {note.content}
                     </div>
                   </div>
-
-                  {/* Read-Only Notice */}
-                  {user?.role !== 'admin' && (
-                    <div className="alert bg-base-200 border-base-300">
-                      <CheckCircle className="w-5 h-5 text-[#00FF9D]" />
-                      <div>
-                        <span className="font-medium">Read-only view</span>
-                        <div className="text-sm">
-                          You can view this note but only administrators can edit or delete it.
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
 
@@ -403,38 +388,6 @@ export const NoteDetailPage = () => {
                     <span className="font-medium">Last viewed:</span> Just now
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Permissions Info */}
-          <div className="mt-8 bg-base-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <Shield className="w-5 h-5 text-[#00FF9D] flex-shrink-0 mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium mb-1">Permissions:</p>
-                <ul className="space-y-1 text-base-content/70">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-success" />
-                    <span>All users can view notes</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    {user?.role === 'admin' ? (
-                      <CheckCircle className="w-4 h-4 text-success" />
-                    ) : (
-                      <X className="w-4 h-4 text-error" />
-                    )}
-                    <span>Edit notes: {user?.role === 'admin' ? 'Allowed' : 'Not allowed'}</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    {user?.role === 'admin' ? (
-                      <CheckCircle className="w-4 h-4 text-success" />
-                    ) : (
-                      <X className="w-4 h-4 text-error" />
-                    )}
-                    <span>Delete notes: {user?.role === 'admin' ? 'Allowed' : 'Not allowed'}</span>
-                  </li>
-                </ul>
               </div>
             </div>
           </div>

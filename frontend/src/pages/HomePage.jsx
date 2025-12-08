@@ -12,7 +12,7 @@ export const HomePage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Get user from localStorage (already authenticated by ProtectedRoute)
+    // Get user from localStorage
     const userData = localStorage.getItem('user');
     if (userData) {
       try {
@@ -26,34 +26,47 @@ export const HomePage = () => {
   }, [navigate]);
 
   useEffect(() => {
-    const fetchNotes = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get("http://localhost:5001/api/notes", {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        setNotes(res.data.notes || [])
-      } catch (error) {
-        console.error("Error Fetching notes", error);
-        
-        if (error.response?.status === 401) {
-          toast.error("Session expired. Please login again.");
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          navigate('/login');
-        } else {
-          toast.error("Failed to Load notes");
-        }
-      } finally {
-        setLoading(false)
-      };
-    };
-    
     fetchNotes();
   }, [navigate]);
+
+  const fetchNotes = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get("http://localhost:5001/api/notes", {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      setNotes(res.data.notes || [])
+    } catch (error) {
+      console.error("Error Fetching notes", error);
+      
+      if (error.response?.status === 401) {
+        toast.error("Session expired. Please login again.");
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+      } else {
+        toast.error("Failed to Load notes");
+      }
+    } finally {
+      setLoading(false)
+    };
+  };
+
+  // Handle note deletion
+  const handleNoteDelete = (deletedNoteId) => {
+    // Remove note from state
+    setNotes(prevNotes => prevNotes.filter(note => note._id !== deletedNoteId));
+    toast.success('Note deleted successfully');
+  };
+
+  // Refresh notes (optional)
+  const refreshNotes = () => {
+    setLoading(true);
+    fetchNotes();
+  };
 
   return (
     <div className='min-h-screen'>
@@ -71,6 +84,18 @@ export const HomePage = () => {
                 ? `You have ${notes.length} note${notes.length !== 1 ? 's' : ''}`
                 : 'Start by creating your first note!'}
             </p>
+            {user.role === 'admin' && (
+              <div className="badge badge-primary mt-2">
+                Administrator Mode
+              </div>
+            )}
+            {/* Refresh button (optional) */}
+            <button 
+              onClick={refreshNotes}
+              className="btn btn-sm btn-ghost mt-2"
+            >
+              Refresh Notes
+            </button>
           </div>
         )}
 
@@ -82,7 +107,11 @@ export const HomePage = () => {
         ) : notes && notes.length > 0 ? (
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
             {notes.map(note => (
-              <NoteCard key={note._id} note={note} />
+              <NoteCard 
+                key={note._id} 
+                note={note} 
+                onDelete={handleNoteDelete}  // Add this prop
+              />
             ))}
           </div>
         ) : (
