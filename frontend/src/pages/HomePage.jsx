@@ -9,10 +9,16 @@ export const HomePage = () => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalNotes, setTotalNotes] = useState(0);
+  const [limit] = useState(6);
+  
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Get user from localStorage
     const userData = localStorage.getItem('user');
     if (userData) {
       try {
@@ -27,18 +33,26 @@ export const HomePage = () => {
 
   useEffect(() => {
     fetchNotes();
-  }, [navigate]);
+  }, [navigate, currentPage]);
 
   const fetchNotes = async () => {
     try {
       const token = localStorage.getItem('token');
+      
       const res = await axios.get("http://localhost:5001/api/notes", {
         headers: {
           'Authorization': `Bearer ${token}`
+        },
+        params: {
+          page: currentPage,
+          limit: limit
         }
       });
       
-      setNotes(res.data.notes || [])
+      setNotes(res.data.notes || []);
+      setTotalPages(res.data.pagination?.totalPages || 1);
+      setTotalNotes(res.data.pagination?.totalNotes || 0);
+      
     } catch (error) {
       console.error("Error Fetching notes", error);
       
@@ -57,8 +71,8 @@ export const HomePage = () => {
 
   // Handle note deletion
   const handleNoteDelete = (deletedNoteId) => {
-    // Remove note from state
     setNotes(prevNotes => prevNotes.filter(note => note._id !== deletedNoteId));
+    setTotalNotes(prev => prev - 1);
     toast.success('Note deleted successfully');
   };
 
@@ -66,6 +80,33 @@ export const HomePage = () => {
   const refreshNotes = () => {
     setLoading(true);
     fetchNotes();
+  };
+
+  // Generate page numbers like H&M (1, 2, 3, 4, ...)
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Show limited pages with current page in middle
+      let start = Math.max(1, currentPage - 2);
+      let end = Math.min(totalPages, start + maxVisiblePages - 1);
+      
+      if (end - start + 1 < maxVisiblePages) {
+        start = Math.max(1, end - maxVisiblePages + 1);
+      }
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+    }
+    
+    return pages;
   };
 
   return (
@@ -80,8 +121,8 @@ export const HomePage = () => {
               Welcome to ThinkBoard
             </h1>
             <p className="text-base-content/70 mt-2">
-              {notes.length > 0 
-                ? `You have ${notes.length} note${notes.length !== 1 ? 's' : ''}`
+              {totalNotes > 0 
+                ? `You have ${totalNotes} note${totalNotes !== 1 ? 's' : ''}`
                 : 'Start by creating your first note!'}
             </p>
             {user.role === 'admin' && (
@@ -105,15 +146,64 @@ export const HomePage = () => {
             <p className="mt-4 text-white">Loading your notes...</p>
           </div>
         ) : notes && notes.length > 0 ? (
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-            {notes.map(note => (
-              <NoteCard 
-                key={note._id} 
-                note={note} 
-                onDelete={handleNoteDelete}  // Add this prop
-              />
-            ))}
-          </div>
+          <>
+            {/* Notes Grid */}
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10'>
+              {notes.map(note => (
+                <NoteCard 
+                  key={note._id} 
+                  note={note} 
+                  onDelete={handleNoteDelete}
+                />
+              ))}
+            </div>
+
+            {/* Simple Pagination like H&M - ONLY SHOW IF MULTIPLE PAGES */}
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-12">
+                <div className="flex items-center gap-1">
+                  {getPageNumbers().map((pageNum) => (
+                    <button
+                      key={pageNum}
+                      onClick={() => {
+                        setCurrentPage(pageNum);
+                        setLoading(true);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className={`w-10 h-10 flex items-center justify-center rounded-md transition-all ${
+                        currentPage === pageNum
+                          ? 'bg-[#00FF9D] text-black font-semibold'
+                          : 'bg-base-200 hover:bg-base-300 text-base-content'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+                  
+                  {/* Show ellipsis if there are more pages after visible ones */}
+                  {totalPages > getPageNumbers()[getPageNumbers().length - 1] && (
+                    <>
+                      <span className="px-2 text-base-content/50">...</span>
+                      <button
+                        onClick={() => {
+                          setCurrentPage(totalPages);
+                          setLoading(true);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className={`w-10 h-10 flex items-center justify-center rounded-md transition-all ${
+                          currentPage === totalPages
+                            ? 'bg-[#00FF9D] text-black font-semibold'
+                            : 'bg-base-200 hover:bg-base-300 text-base-content'
+                        }`}
+                      >
+                        {totalPages}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
         ) : (
           <div className="text-center py-20">
             <div className="max-w-md mx-auto">
