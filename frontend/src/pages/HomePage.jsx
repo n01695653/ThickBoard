@@ -16,6 +16,9 @@ export const HomePage = () => {
   const [totalNotes, setTotalNotes] = useState(0);
   const [limit] = useState(6);
   
+  // Simple search state - ONLY ADD THIS
+  const [search, setSearch] = useState('');
+  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,7 +36,7 @@ export const HomePage = () => {
 
   useEffect(() => {
     fetchNotes();
-  }, [navigate, currentPage]);
+  }, [navigate, currentPage, search]); // Add search as dependency
 
   const fetchNotes = async () => {
     try {
@@ -45,7 +48,8 @@ export const HomePage = () => {
         },
         params: {
           page: currentPage,
-          limit: limit
+          limit: limit,
+          search: search || undefined // Simple search param
         }
       });
       
@@ -65,35 +69,31 @@ export const HomePage = () => {
         toast.error("Failed to Load notes");
       }
     } finally {
-      setLoading(false)
-    };
+      setLoading(false);
+    }
   };
 
-  // Handle note deletion
   const handleNoteDelete = (deletedNoteId) => {
     setNotes(prevNotes => prevNotes.filter(note => note._id !== deletedNoteId));
     setTotalNotes(prev => prev - 1);
     toast.success('Note deleted successfully');
   };
 
-  // Refresh notes (optional)
   const refreshNotes = () => {
     setLoading(true);
     fetchNotes();
   };
 
-  // Generate page numbers like H&M (1, 2, 3, 4, ...)
+  // Generate page numbers
   const getPageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 5;
     
     if (totalPages <= maxVisiblePages) {
-      // Show all pages
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
     } else {
-      // Show limited pages with current page in middle
       let start = Math.max(1, currentPage - 2);
       let end = Math.min(totalPages, start + maxVisiblePages - 1);
       
@@ -130,7 +130,6 @@ export const HomePage = () => {
                 Administrator Mode
               </div>
             )}
-            {/* Refresh button (optional) */}
             <button 
               onClick={refreshNotes}
               className="btn btn-sm btn-ghost mt-2"
@@ -140,6 +139,20 @@ export const HomePage = () => {
           </div>
         )}
 
+        {/* SIMPLE SEARCH BAR - ONLY ADD THIS */}
+        <div className="mb-8 max-w-md mx-auto">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1); // Reset to page 1 when searching
+            }}
+            placeholder="Search notes..."
+            className="w-full px-4 py-2 bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:border-[#00FF9D]"
+          />
+        </div>
+
         {loading ? (
           <div className="text-center py-20">
             <span className="loading loading-spinner loading-lg text-[#00FF9D]"></span>
@@ -147,7 +160,6 @@ export const HomePage = () => {
           </div>
         ) : notes && notes.length > 0 ? (
           <>
-            {/* Notes Grid */}
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10'>
               {notes.map(note => (
                 <NoteCard 
@@ -158,7 +170,7 @@ export const HomePage = () => {
               ))}
             </div>
 
-            {/* Simple Pagination like H&M - ONLY SHOW IF MULTIPLE PAGES */}
+            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center mt-12">
                 <div className="flex items-center gap-1">
@@ -180,7 +192,6 @@ export const HomePage = () => {
                     </button>
                   ))}
                   
-                  {/* Show ellipsis if there are more pages after visible ones */}
                   {totalPages > getPageNumbers()[getPageNumbers().length - 1] && (
                     <>
                       <span className="px-2 text-base-content/50">...</span>
@@ -212,8 +223,10 @@ export const HomePage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">No notes yet</h3>
-              <p className="text-base-content/70 mb-6">Create your first note to get started!</p>
+              <h3 className="text-xl font-semibold text-white mb-2">No notes found</h3>
+              <p className="text-base-content/70 mb-6">
+                {search ? `No notes matching "${search}"` : 'Create your first note to get started!'}
+              </p>
               <button 
                 onClick={() => navigate('/create')}
                 className="btn btn-primary bg-gradient-to-r from-[#00FF9D] to-primary border-0"

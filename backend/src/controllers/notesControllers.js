@@ -2,9 +2,7 @@ import Note from "../models/Note.js";
 
 export  async function getAllNotes(req,res) {
     try {
-        // ====================
-        // 1. GET QUERY PARAMETERS
-        // ====================
+        
         const page = parseInt(req.query.page) || 1;      // Page number (default: 1)
         const limit = parseInt(req.query.limit) || 6;   // Notes per page (default: 10)
         const search = req.query.search || '';           // Search keyword
