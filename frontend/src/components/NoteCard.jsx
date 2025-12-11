@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PenSquare, Trash2 } from 'lucide-react';
 import axios from 'axios';
@@ -8,6 +8,22 @@ const NoteCard = ({ note, onDelete }) => {
   const navigate = useNavigate();
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null); // Add this state
+
+  // Get current user on component mount
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        setCurrentUser(JSON.parse(userStr));
+      } catch (error) {
+        console.error('Error parsing user:', error);
+      }
+    }
+  }, []);
+
+  // Check if current user is admin
+  const isAdmin = currentUser?.role === 'admin';
 
   if (!note) {
     return (
@@ -37,62 +53,70 @@ const NoteCard = ({ note, onDelete }) => {
 
   // Handle Delete Button Click
   const handleDelete = async () => {
-  setIsDeleting(true);
-  try {
-    const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user'));
-    
-    console.log('Deleting note as:', user?.role);
-    
-    const response = await axios.delete(
-      `http://localhost:5001/api/notes/${note._id}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }
-    );
-
-    console.log('Delete response:', response.data);
-    
-   
-    if (typeof response.data === 'string') {
-      // Handle string response (
-      toast.success(response.data);
-      if (onDelete) {
-        onDelete(note._id);
-      }
-    } else if (response.data.success) {
-      // Handle object response 
-      toast.success(response.data.message || 'Note deleted successfully!');
-      if (onDelete) {
-        onDelete(note._id);
-      }
-    } else {
-      toast.error(response.data.message || 'Failed to delete note');
-    }
-    
-  } catch (error) {
-    console.error('Delete error:', error);
-    
-    if (error.response?.status === 403) {
+    // Check permission before deleting
+    if (!isAdmin) {
       toast.error('Only administrators can delete notes');
-    } else if (error.response?.status === 401) {
-      toast.error('Please login again');
-      navigate('/login');
-    } else if (error.response?.data?.message) {
-      toast.error(error.response.data.message);
-    } else {
-      toast.error('Failed to delete note');
+      return;
     }
-  } finally {
-    setIsDeleting(false);
-    setShowDeleteConfirm(false);
-  }
-};
+    
+    setIsDeleting(true);
+    try {
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user'));
+      
+      console.log('Deleting note as:', user?.role);
+      
+      const response = await axios.delete(
+        `http://localhost:5001/api/notes/${note._id}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      console.log('Delete response:', response.data);
+      
+      if (typeof response.data === 'string') {
+        toast.success(response.data);
+        if (onDelete) {
+          onDelete(note._id);
+        }
+      } else if (response.data.success) {
+        toast.success(response.data.message || 'Note deleted successfully!');
+        if (onDelete) {
+          onDelete(note._id);
+        }
+      } else {
+        toast.error(response.data.message || 'Failed to delete note');
+      }
+      
+    } catch (error) {
+      console.error('Delete error:', error);
+      
+      if (error.response?.status === 403) {
+        toast.error('Only administrators can delete notes');
+      } else if (error.response?.status === 401) {
+        toast.error('Please login again');
+        navigate('/login');
+      } else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error('Failed to delete note');
+      }
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
 
   // Show delete confirmation dialog
   const confirmDelete = () => {
+    // Check permission before showing confirmation
+    if (!isAdmin) {
+      toast.error('Only administrators can delete notes');
+      return;
+    }
     setShowDeleteConfirm(true);
   };
 
@@ -106,7 +130,7 @@ const NoteCard = ({ note, onDelete }) => {
           <span className='text-sm text-base-content/60'>{formatDate(note.createdAt)}</span>
           
           <div className='flex items-center gap-2'>
-            {/* Edit Button */}
+            {/* Edit Button - Show for everyone */}
             <button 
               onClick={handleEdit}
               className='btn btn-ghost btn-xs text-info hover:bg-info/20'
@@ -115,34 +139,36 @@ const NoteCard = ({ note, onDelete }) => {
               <PenSquare className='size-4' />
             </button>
             
-            {/* Delete Button with Confirmation */}
-            {showDeleteConfirm ? (
-              <div className="flex items-center gap-1 bg-base-200 p-1 rounded-lg">
-                <span className="text-xs px-2">Delete?</span>
-                <button
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                  className="btn btn-xs btn-error"
+            {/* Delete Button - ONLY SHOW FOR ADMINS */}
+            {isAdmin && (
+              showDeleteConfirm ? (
+                <div className="flex items-center gap-1 bg-base-200 p-1 rounded-lg">
+                  <span className="text-xs px-2">Delete?</span>
+                  <button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="btn btn-xs btn-error"
+                  >
+                    {isDeleting ? (
+                      <span className="loading loading-spinner loading-xs"></span>
+                    ) : 'Yes'}
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className="btn btn-xs btn-ghost"
+                  >
+                    No
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  onClick={confirmDelete}
+                  className='btn btn-ghost btn-xs text-error hover:bg-error/20'
+                  title="Delete Note (Admin Only)"
                 >
-                  {isDeleting ? (
-                    <span className="loading loading-spinner loading-xs"></span>
-                  ) : 'Yes'}
+                  <Trash2 className='size-4' />
                 </button>
-                <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  className="btn btn-xs btn-ghost"
-                >
-                  No
-                </button>
-              </div>
-            ) : (
-              <button 
-                onClick={confirmDelete}
-                className='btn btn-ghost btn-xs text-error hover:bg-error/20'
-                title="Delete Note"
-              >
-                <Trash2 className='size-4' />
-              </button>
+              )
             )}
           </div>
         </div>
